@@ -6,6 +6,7 @@ Holds constant values that need to be accessed by various things.
 
 Imports:                                                                                         """
 import built_in
+import math
 
 
 # the operators that can be used, and their associated built-in functions
@@ -17,12 +18,22 @@ operators = {
 }
 
 built_in_functions = {
+    # general
     'print': print,
+    'input': input,
+    'open': built_in.get_file,
+
+    # maths
     'add': built_in.add,
     'subtract': built_in.subtract,
     'multiply': built_in.multiply,
     'divide': built_in.divide,
-
+    'sin': math.sin,
+    'cos': math.cos,
+    'tan': math.tan,
+    'asin': math.asin,
+    'acos': math.acos,
+    'atan': math.atan,
 }
 
 # all character that can be in a variable name. Note that it can't start with a number,
@@ -51,6 +62,7 @@ negative_sign = '-'
 decimal_point = '.'
 
 open_array = "("
+array_separator = ','
 close_array = ")"
 
 # types of tags
@@ -61,7 +73,7 @@ run_function = 'run'
 open_comment = '[#]'
 close_comment = '[-#]'
 
-parameter_variable, reversed_parameter_name = 'param', 'marap'
+parameter_variable, reversed_parameter_name = 'arg', 'gra'
 
 
 # exceptions

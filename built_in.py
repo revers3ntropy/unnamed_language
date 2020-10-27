@@ -85,3 +85,13 @@ def divide(a: float, b: float):
         raise ValueError(f"Can only divide two numbers, not '{a}' and '{b}'")
 
     return a / b
+
+
+def get_file(file_name: str):
+
+    file_data = ''
+    with open(file_name) as file:
+        for line in file:
+            file_data += line
+
+    return file_data

@@ -109,18 +109,8 @@ class Interpreter:
             print(f"end: functions: '{self.__functions}'")
             print(f"end: tags: '{self.__tag_hierarchy}'")
 
-    def __set_value(self):
-        """
-        Goes through until it sees the start of a new tag, setting what it finds to
-        self.__current_value. Generally is for parameters, variable assignment etc. Looks for types,
-        for example ' for strings, or numbers for ints. Also controls operators, eg. 1 + 1.
-        TODO: split this function
-        """
-        value = self.__get_up_to(c.open_tag)
-        # makes it exclusive
-        value = list(value[:-1])
-        self.__code.insert(0, c.open_tag)
-
+    def __get_value_from(self, value):
+        current_value = None
         while value:
             # deal with strings
             if value[0] == c.open_string:
@@ -129,16 +119,24 @@ class Interpreter:
                 # remove the string from the temporary queue 'value'
                 for i in range(len(string_value)):
                     value.pop(0)
-                self.__current_value = util.remove_char_word(string_value, -1)
+                current_value = util.remove_char_word(string_value, -1)
 
             # for arrays
             if value[0] == c.open_array:
                 value.pop(0)
-                string_value = util.get_up_to_in(''.join(value), c.close_array)
+                array_value = util.get_up_to_in(''.join(value), c.close_array)
                 # remove the string from the temporary queue 'value'
-                for i in range(len(string_value)):
+                for i in range(len(array_value)):
                     value.pop(0)
-                self.__current_value = util.remove_char_word(string_value, -1)
+                array_value = util.remove_char_word(array_value, -1)
+                array_value = array_value.split(c.array_separator)
+
+                array = []
+
+                for data in array_value:
+                    # calls itself for each item in the array
+                    data = self.__get_value_from(data)
+                    array.append(data)
 
             # deal with whitespace
             elif value[0] in c.ignore:
@@ -146,7 +144,7 @@ class Interpreter:
 
             else:
                 try:
-                    # deal with numbers
+                    # deals with numbers
 
                     # deal with negative sign
                     if value[0] == c.negative_sign:
@@ -175,7 +173,7 @@ class Interpreter:
                             go = False
 
                         try:
-                            self.__current_value = float(number)
+                            current_value = float(number)
                         except KeyError:
                             raise NameError(f"Number '{number}' is not valid.")
 
@@ -207,9 +205,24 @@ class Interpreter:
                             # program moves on. If no var of that name can be found, another error is
                             # called.
                             try:
-                                self.__current_value = self.__variables[var_name]
+                                current_value = self.__variables[var_name]
                             except KeyError:
                                 raise NameError(f"variable '{var_name}' could not be found.")
+
+        return current_value
+
+    def __set_value(self):
+        """
+        Goes through until it sees the start of a new tag, setting what it finds to
+        self.__current_value. Generally is for parameters, variable assignment etc. Looks for types,
+        for example ' for strings, or numbers for ints. Also controls operators, eg. 1 + 1.
+        """
+        value = self.__get_up_to(c.open_tag)
+        # makes it exclusive
+        value = list(value[:-1])
+        self.__code.insert(0, c.open_tag)
+
+        self.__current_value = self.__get_value_from(value)
 
         if self.__debug:
             return self.__current_value

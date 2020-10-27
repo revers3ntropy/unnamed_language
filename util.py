@@ -19,10 +19,7 @@ def remove_char_word(word: Union[list, str], index: int):
     """
     word = list(word)
     word.pop(index)
-    new_word = ''
-    for i in word:
-        new_word += i
-    return new_word
+    return ''.join(word)
 
 
 def get_up_to_in(value: Union[str, list], search_for: str, inclusive: bool = True):

@@ -9,12 +9,12 @@ This is some example code to show off features.
 
 [func:test_function]
     [run:print]
-        param
+        arg
     [-print]
 [-test_function]
 
 [var:message]
-    -1234.5
+    (1234, 123,)
 [-message]
 
 [run:test_function]
