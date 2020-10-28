@@ -8,6 +8,8 @@ Imports:                                                                        
 import built_in
 import math
 
+debug_level = 0
+
 
 # the operators that can be used, and their associated built-in functions
 operators = {
@@ -15,13 +17,22 @@ operators = {
     '-': built_in.subtract,
     '*': built_in.multiply,
     '/': built_in.divide,
+
+    '=': built_in.check_equal,
+    '!=': built_in.check_equal,
+    '>': built_in.check_greater_than,
+    '<': built_in.check_less_than,
+    '>=': built_in.check_greater_than_or_equal_to,
+    '<=': built_in.check_less_than_or_equal_to,
+
 }
 
 built_in_functions = {
     # general
-    'print': print,
-    'input': input,
+    'echo': print,
+    'enter': input,
     'open': built_in.get_file,
+    'range': built_in.get_range,
 
     # maths
     'add': built_in.add,
@@ -45,12 +56,17 @@ variable_characters = [
     'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '_'
 ]
 
+booleans = {
+    'true': True,
+    'false': False
+}
+
 '''                 code definitions                '''
 # tags
-open_tag = '['
-tag_divider = ':'
-close_tag = ']'
-closing_tag_sign = '-'
+open_tag = '<'
+tag_divider = '|'
+close_tag = '>'
+closing_tag_sign = '/'
 
 ignore = [' ', '\n']
 
@@ -61,17 +77,20 @@ close_string = "'"
 negative_sign = '-'
 decimal_point = '.'
 
-open_array = "("
+open_array = "["
 array_separator = ','
-close_array = ")"
+close_array = "]"
 
 # types of tags
 function_declaration = 'func'
 variable_declaration = 'var'
 run_function = 'run'
+import_declaration = 'import'
+for_loop = 'for'
+if_statement = 'if'
 
-open_comment = '[#]'
-close_comment = '[-#]'
+open_comment = '#'
+close_comment = '/#'
 
 parameter_variable, reversed_parameter_name = 'arg', 'gra'
 

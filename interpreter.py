@@ -10,6 +10,8 @@ from tag import Tag
 from function import Function
 import constants as c
 
+import time
+
 
 class Interpreter:
     """
@@ -28,6 +30,7 @@ class Interpreter:
         __get_up_to
         __interpret
         __step
+        __get_value_from
         __set_value
         __run
         __tag
@@ -35,10 +38,10 @@ class Interpreter:
         __remove_tag
         __remove_comment
         __assign
+        __import
     """
 
-    def __init__(self, code_: str, debug_lvl: int = 0):
-        self.__debug = debug_lvl
+    def __init__(self, code_: str):
         self.__code = list(code_)
         self.__tag_hierarchy = []
         self.__variables = {}
@@ -46,7 +49,7 @@ class Interpreter:
 
         self.__current_value = None
 
-        if self.__debug < 3:
+        if c.debug_level < 3:
             self.__interpret()
 
     # -------------------------------------- util functions ---------------------------------------#
@@ -80,8 +83,12 @@ class Interpreter:
         Runs the interpreter on the code until the code has finished
         """
 
+        start_time = time.time()
+
         while self.__code:
             self.__step()
+
+        print(f"Finished running code in {round(time.time() - start_time, 3)} seconds")
 
     def __step(self):
         """
@@ -90,12 +97,15 @@ class Interpreter:
         """
         char = self.__code[0]
 
-        if self.__debug > 0:
-            print(f"start: code: '{self.__code}'")
-            print(f"start: functions: '{self.__functions}'")
-            print(f"start: tags: '{self.__tag_hierarchy}'")
+        if c.debug_level > 0:
+            print(f"code: '{self.__code}'")
 
-        if char == c.open_tag:
+            print(value for value in self.__variables)
+
+        if ''.join(self.__code[:len(c.open_comment)]) == c.open_comment:
+            self.__remove_comment()
+
+        elif char == c.open_tag:
             self.__tag()
 
         elif char in c.ignore:
@@ -104,12 +114,11 @@ class Interpreter:
         else:
             self.__set_value()
 
-        if self.__debug > 1:
-            print(f"end: code: '{self.__code}'")
-            print(f"end: functions: '{self.__functions}'")
-            print(f"end: tags: '{self.__tag_hierarchy}'")
-
-    def __get_value_from(self, value):
+    def __get_value_from(self, value: list):
+        """
+        Goes through a list of code and returns the final value of the code, accounting for type,
+        variables, and operators. Very long function.
+        """
         current_value = None
         while value:
             # deal with strings
@@ -122,7 +131,7 @@ class Interpreter:
                 current_value = util.remove_char_word(string_value, -1)
 
             # for arrays
-            if value[0] == c.open_array:
+            elif value[0] == c.open_array:
                 value.pop(0)
                 array_value = util.get_up_to_in(''.join(value), c.close_array)
                 # remove the string from the temporary queue 'value'
@@ -132,11 +141,12 @@ class Interpreter:
                 array_value = array_value.split(c.array_separator)
 
                 array = []
-
                 for data in array_value:
                     # calls itself for each item in the array
-                    data = self.__get_value_from(data)
+                    data = self.__get_value_from(list(data))
                     array.append(data)
+
+                current_value = array
 
             # deal with whitespace
             elif value[0] in c.ignore:
@@ -167,7 +177,7 @@ class Interpreter:
                                     float(value[0])
                                     number += value[0]
                                     value.pop(0)
-                                except:
+                                except ValueError:
                                     go = False
                         else:
                             go = False
@@ -177,7 +187,7 @@ class Interpreter:
                         except KeyError:
                             raise NameError(f"Number '{number}' is not valid.")
 
-                except:
+                except ValueError:
                     # deal with operators
                     try:
                         print(value[10000])
@@ -213,9 +223,8 @@ class Interpreter:
 
     def __set_value(self):
         """
-        Goes through until it sees the start of a new tag, setting what it finds to
-        self.__current_value. Generally is for parameters, variable assignment etc. Looks for types,
-        for example ' for strings, or numbers for ints. Also controls operators, eg. 1 + 1.
+        Gets the value of the current code up until the next open tag, and sets that to
+        __current_value.
         """
         value = self.__get_up_to(c.open_tag)
         # makes it exclusive
@@ -224,8 +233,48 @@ class Interpreter:
 
         self.__current_value = self.__get_value_from(value)
 
-        if self.__debug:
-            return self.__current_value
+    def __add_to_code(self, code, replace: str = None, with_: str = None):
+        """
+        Adds some code to the code queue.
+        """
+
+        """
+        adds typing to the vars, as they are converted to a string when they are added but have
+        lost their typing (eg. '' for strings)
+        """
+        if type(with_) == str:
+            # the quotes have been taken away for strings
+            new_value = c.open_string + with_ + c.close_string
+
+        elif type(with_) == list:
+            new_value = [c.open_array, c.close_array]
+            for i in range(len(with_)):
+                element = keep_type(with_[i])
+
+                new_value.insert(-1, str(element))
+
+                if i != len(with_) - 1:
+                    new_value.insert(-1, c.array_separator)
+
+            new_value = ''.join(new_value)
+
+        else:
+            new_value = with_
+
+        # get the typed replacement value
+        with_ = list(str(new_value))
+        with_.reverse()
+        with_ = ''.join(with_)
+
+        code = list(str(code))
+        code.reverse()
+        code = ''.join(code)
+
+        code = list(code.replace(replace, with_))
+
+        # add the new code to the current code
+        for i in range(len(code)):
+            self.__code.insert(0, code[i])
 
     def __run(self, function_name: str):
         """
@@ -238,36 +287,16 @@ class Interpreter:
         To run a defined function, the contents of the function are simply added to self.__code to be
         be run.
 
-        Any variable named 'param' in this is automatically replaced with the parameter of the
-        function. This is static, so you can't change or assign to param, and if the variables
-        which are included in the definition of param change, the value of param will not change
-        with it.
+        Any variable called the dedicated paramter variable in this is automatically replaced with
+        the parameter of the function. This is static, so you can't change or assign to param,
+        and if the variables which are included in the definition of param change, the value of
+        param will not change with it.
         """
         try:
-            function_code = self.__functions[function_name].get_contents()
+            # slightly unreadable, basically takes the code in the function given by the name and
+            # reversed it, then replaces all instances of the parameter name with the current value
 
-            # removes instances of 'param' and replaces them with the passed in variable
-            temp_code = ''.join(function_code)
-
-            # keep the same type
-            value_type = type(self.__current_value)
-            if value_type == str:
-                # the quotes have been taken away for strings
-                to_pass_in = c.open_string + self.__current_value + c.close_string
-            else:
-                to_pass_in = self.__current_value
-
-            # get the typed replacement value
-            replacement = list(str(to_pass_in))
-            replacement.reverse()
-            replacement = ''.join(replacement)
-
-            # 'marap' because the function code is reversed
-            function_code = list(temp_code.replace(c.reversed_parameter_name, replacement))
-
-            # add the new code to the current code
-            for i in range(len(function_code)):
-                self.__code.insert(0, function_code[i])
+            self.__add_to_code(self.__functions[function_name], replace=c.parameter_variable, with_=self.__current_value)
 
         except KeyError:  # the function has not been defined by the user
             try:
@@ -276,6 +305,32 @@ class Interpreter:
 
             except KeyError:
                 raise NameError(f"Function '{function_name}' could not be found.")
+
+    def __for_loop(self, tag):
+        """
+        basically treats the code like a function, creates a new function called '__loop__' and
+        then repeats it if the tag says it should go.
+        """
+        tag = util.remove_char_word(tag, -1)
+        close_tag = c.open_tag + c.closing_tag_sign + c.for_loop + c.close_tag
+        loop_code = self.__get_up_to(close_tag, inclusive=False)
+
+        # clean up closing tag
+        for i in range(len(close_tag)):
+            self.__code.pop(0)
+
+        tag_components = tag.split(c.tag_divider)
+        if len(tag_components) != 3:
+            raise SyntaxError(f"For loop must have three parts: for, variable declaration and array to loop over")
+
+        loop_var_name = tag_components[1]
+        to_loop_over = self.__get_value_from(list(tag_components[2]))
+        to_loop_over.reverse()
+
+        # actual loop
+        for value in to_loop_over:
+            # adds the loop code to the code, replacing that variable
+            self.__add_to_code(loop_code, replace=loop_var_name, with_=value)
 
     def __tag(self):
         """
@@ -301,29 +356,29 @@ class Interpreter:
 
         Parameters:  tag - the name of the tag to add
         """
-        if ''.join(tag[:len(c.open_comment)]) == c.open_comment:
-            self.__remove_comment()
+
+        tag_type = util.get_up_to_in(tag[1:], c.tag_divider, inclusive=False)
+
+        # remove the hanging tag divider
+        tag = util.remove_char_word(tag, 0)
+
+        tag_value = tag[1 + len(tag_type):-1]
+
+        if tag_type == c.function_declaration:
+            # new function with the name given in the opening tag
+            # NOTE: could be different to name given in closing tag, there are checks though
+            self.__new_function(tag_value)
+        elif tag_type == c.for_loop:
+            # starts looping
+            self.__for_loop(tag)
         else:
+            # if your not declaring a function, then open a new tag.
+            # A function tag is not opened because a Function object (which is added to
+            # self.functions) needs the raw code, and opening a tag won't allow that
+            self.__tag_hierarchy.append(Tag(tag_type, tag_value))
 
-            tag_type = util.get_up_to_in(tag[1:], c.tag_divider, inclusive=False)
-
-            # remove the hanging tag divider
-            tag = util.remove_char_word(tag, 0)
-
-            tag_value = tag[1 + len(tag_type):-1]
-
-            if tag_type == c.function_declaration:
-                # new function with the name given in the opening tag
-                # NOTE: could be different to name given in closing tag, there are checks though
-                self.__new_function(tag_value)
-            else:
-                # if your not declaring a function, then open a new tag.
-                # A function tag is not opened because a Function object (which is added to
-                # self.functions) needs the raw code, and opening a tag won't allow that
-                self.__tag_hierarchy.append(Tag(tag_type, tag_value))
-
-            # reset the current value whenever a new tag is opened
-            self.__current_value = None
+        # reset the current value whenever a new tag is opened
+        self.__current_value = None
 
     def __remove_tag(self, tag: str):
         """
@@ -376,16 +431,17 @@ class Interpreter:
         func_name index of self.functions. Each function takes in exactly one argument, param, which
         is automatically replaced with the value.
         """
-        function_contents = self.__get_up_to(f"[-{func_name}]", inclusive=False)
+        function_contents = self.__get_up_to(c.open_tag + c.closing_tag_sign + func_name + c.close_tag, inclusive=False)
 
-        if self.__debug > 1:
+        if c.debug_level > 1:
             print(f"func '{func_name}' contains '{function_contents}'")
-        elif self.__debug == 1:
+        elif c.debug_level == 1:
             print(f"new function: '{func_name}'")
 
         # creates a new Function which is added to the current list of functions
         self.__functions[func_name] = Function(func_name, function_contents, functions=self.__functions)
 
-        # clear up the remaining closing tag. +3 is needed because of the [- and ]
+        # clear up the remaining closing tag. +3 is needed because of the surrounding tags
+        # Note: this needs to be changed if tag declaration changes
         for i in range(len(func_name) + 3):
             self.__code.pop(0)

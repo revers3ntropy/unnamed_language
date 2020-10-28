@@ -1,0 +1,16 @@
+#
+
+Loops example
+
+/#
+<var|my_range>
+    <run|range>
+        1000
+    </range>
+</my_range>
+
+<for|j|my_range>
+    <run|echo>
+        j
+    </echo>
+</for>

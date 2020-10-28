@@ -8,11 +8,20 @@ Imports:                                                                        
 from interpreter import Interpreter
 
 
-def code(code_: str, debug_lvl: int = 0):
+def main():
+    with open('main.txt') as program:
+        code_ = ''
+        for line in program:
+            code_ += line
+        code(code_)
+
+
+def code(code_: str):
     """
     Runs the code passed through.
     """
-    if debug_lvl > 1:
-        print(f"debug level '{debug_lvl}'")
+    Interpreter(code_)
 
-    Interpreter(code_, debug_lvl=debug_lvl)
+
+if __name__ == '__main__':
+    main()
