@@ -19,20 +19,24 @@ operators = {
     '/': built_in.divide,
 
     '=': built_in.check_equal,
-    '!=': built_in.check_equal,
-    '>': built_in.check_greater_than,
-    '<': built_in.check_less_than,
-    '>=': built_in.check_greater_than_or_equal_to,
-    '<=': built_in.check_less_than_or_equal_to,
-
+    '!=': built_in.check_not_equal,
+    'gt': built_in.check_greater_than,
+    'lt': built_in.check_less_than,
+    'gt=': built_in.check_greater_than_or_equal_to,
+    'lt=': built_in.check_less_than_or_equal_to
 }
 
 built_in_functions = {
     # general
     'echo': print,
-    'enter': input,
+    'listen': input,
     'open': built_in.get_file,
     'range': built_in.get_range,
+
+    # types
+    'str': str,
+    'num': float,
+    'array': list,
 
     # maths
     'add': built_in.add,
@@ -56,7 +60,7 @@ variable_characters = [
     'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '_'
 ]
 
-booleans = {
+built_in_variables = {
     'true': True,
     'false': False
 }
@@ -81,6 +85,9 @@ open_array = "["
 array_separator = ','
 close_array = "]"
 
+open_bracket = '('
+close_bracket = ')'
+
 # types of tags
 function_declaration = 'func'
 variable_declaration = 'var'
@@ -88,6 +95,9 @@ run_function = 'run'
 import_declaration = 'import'
 for_loop = 'for'
 if_statement = 'if'
+elif_statement = 'else'
+else_statement = '________'
+return_statement = 'return'
 
 open_comment = '#'
 close_comment = '/#'

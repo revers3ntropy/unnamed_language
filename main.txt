@@ -1,16 +1,20 @@
 #
-
-Loops example
-
+Loops, variables and if/else statement example
 /#
-<var|my_range>
-    <run|range>
-        1000
-    </range>
-</my_range>
+<import>
+    ['joseph_coppin_nea']
+</import>
 
-<for|j|my_range>
+<var|number>
+    20
+</number>
+
+<if|number gt 1>
     <run|echo>
-        j
+        number
     </echo>
-</for>
+<else|true>
+    <run|echo>
+        number / 2
+    </echo>
+</if>

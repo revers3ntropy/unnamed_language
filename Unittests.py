@@ -73,11 +73,11 @@ class TestTags(unittest.TestCase):
 class TestInterpreter(unittest.TestCase):
     def test_print(self):
         test_code = """
-        [run:print]
+        [run:echo]
             'hello world'
-        [-print]
+        [-echo]
         """
-        interpreter = Interpreter(test_code, debug_lvl=3)
+        interpreter = Interpreter(test_code)
 
 
 if __name__ == '__main__':
