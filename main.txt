@@ -1,20 +1,21 @@
+[func|main]
+    [var|my_string]
+        arg
+    [/my_string]
+
+    [run|echo]
+        [run|concatenate]
+            {'My string: ', my_string}
+        [/concatenate]
+    [/echo]
+[/main]
+
+[run|main]
+    'hello world'
+[/main
+
 #
-Loops, variables and if/else statement example
-/#
-<import>
-    ['joseph_coppin_nea']
-</import>
-
-<var|number>
-    20
-</number>
-
-<if|number gt 1>
-    <run|echo>
-        number
-    </echo>
-<else|true>
-    <run|echo>
-        number / 2
-    </echo>
-</if>
+[import]
+    {'joseph_coppin_nea'}
+[/import]
+\#

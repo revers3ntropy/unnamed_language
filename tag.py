@@ -1,4 +1,4 @@
-"""                                      -{ EntropyTag }-
+"""                                    -{ Unnamed Language }-
 
 Programmers: Joseph Coppin
 

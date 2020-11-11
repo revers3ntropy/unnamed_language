@@ -1,4 +1,4 @@
-"""                                      -{ Project Name }-
+"""                                    -{ Unnamed Language }-
 
 Programmers: Joseph Coppin
 
@@ -20,10 +20,11 @@ operators = {
 
     '=': built_in.check_equal,
     '!=': built_in.check_not_equal,
-    'gt': built_in.check_greater_than,
-    'lt': built_in.check_less_than,
-    'gt=': built_in.check_greater_than_or_equal_to,
-    'lt=': built_in.check_less_than_or_equal_to
+    '>': built_in.check_greater_than,
+    '<': built_in.check_less_than,
+    '>=': built_in.check_greater_than_or_equal_to,
+    '<=': built_in.check_less_than_or_equal_to,
+    'in': built_in.check_in,
 }
 
 built_in_functions = {
@@ -31,7 +32,14 @@ built_in_functions = {
     'echo': print,
     'listen': input,
     'open': built_in.get_file,
+    'open_csv': built_in.get_file_csv,
     'range': built_in.get_range,
+    'get_element': built_in.get_element,
+
+    # strings
+    'lower': built_in.StringManipulation.lower_string,
+    'upper': built_in.StringManipulation.upper_string,
+    'concatenate': built_in.StringManipulation.concatenate_strings,
 
     # types
     'str': str,
@@ -62,14 +70,15 @@ variable_characters = [
 
 built_in_variables = {
     'true': True,
-    'false': False
+    'false': False,
+    'null': None,
 }
 
 '''                 code definitions                '''
 # tags
-open_tag = '<'
+open_tag = '['
 tag_divider = '|'
-close_tag = '>'
+close_tag = ']'
 closing_tag_sign = '/'
 
 ignore = [' ', '\n']
@@ -81,9 +90,9 @@ close_string = "'"
 negative_sign = '-'
 decimal_point = '.'
 
-open_array = "["
+open_array = "{"
 array_separator = ','
-close_array = "]"
+close_array = "}"
 
 open_bracket = '('
 close_bracket = ')'
@@ -91,12 +100,12 @@ close_bracket = ')'
 # types of tags
 function_declaration = 'func'
 variable_declaration = 'var'
+set_variable = 'set'
 run_function = 'run'
 import_declaration = 'import'
 for_loop = 'for'
 if_statement = 'if'
 elif_statement = 'else'
-else_statement = '________'
 return_statement = 'return'
 
 open_comment = '#'
